@@ -17,9 +17,8 @@ services:
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-    # 不暴露到宿主机，只通过 nginx 反向代理访问
-    expose:
-      - "3001"
+    ports:
+      - "127.0.0.1:${SERVER_PORT:-13001}:3001"  # 仅本地访问，供 Caddy 反代
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -43,7 +42,7 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - "127.0.0.1:${WEB_PORT:-8080}:80"  # 仅本地访问，供 Caddy 反代
     depends_on:
       - server
     networks:

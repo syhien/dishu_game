@@ -7,45 +7,77 @@
 git clone https://github.com/syhien/dishu_game.git
 cd dishu_game
 
-# 2. 启动服务（无需配置，开箱即用）
+# 2. （可选）自定义端口
+cp .env.example .env
+# 修改 WEB_PORT 和 SERVER_PORT（默认 8080 和 13001）
+
+# 3. 启动服务
 docker compose up -d
 
-# 3. 查看日志
+# 4. 查看日志
 docker compose logs -f
 ```
 
-访问 `http://服务器IP` 即可。
+## 端口说明
 
-## 端口说明（可在 .env 中修改）
+| 环境变量 | 默认 | 说明 |
+|---------|------|------|
+| `WEB_PORT` | 8080 | 前端页面，供 Caddy/Nginx 反代 |
+| `SERVER_PORT` | 13001 | 后端 API，供 Caddy/Nginx 反代 |
 
-| 端口 | 用途 | 默认值 |
-|------|------|--------|
-| 8080 | 前端页面 | 避免与系统 80 冲突 |
-| 13001 | 后端 API + WebSocket | 避免与常用端口冲突 |
+**注意**：默认绑定 `127.0.0.1`，仅本地访问，不直接暴露到公网。
+
+## Caddy 配置（推荐）
+
+```caddyfile
+# Caddyfile
+your-domain.com {
+    # 前端页面
+    reverse_proxy localhost:8080
+    
+    # WebSocket 代理到后端
+    reverse_proxy /socket.io/* localhost:13001
+}
+```
+
+启动 Caddy：
+```bash
+caddy run --config Caddyfile
+```
+
+## Nginx 配置
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+    }
+
+    location /socket.io {
+        proxy_pass http://127.0.0.1:13001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
 
 ## 防火墙配置
 
-### Linux (ufw)
 ```bash
-# 使用默认端口
-sudo ufw allow 8080/tcp
-sudo ufw allow 13001/tcp
+# 只开放 80/443 给 Caddy/Nginx
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
 sudo ufw reload
-
-# 或修改 .env 后使用自定义端口
-# WEB_PORT=8888
-# SERVER_PORT=18001
 ```
-
-### 云服务器
-安全组规则允许入站：
-- 8080 (前端，可修改)
-- 13001 (后端，可修改)
 
 ## 自动更新
 
 ```bash
-# 立即更新
 docker compose exec watchtower --run-once
 ```
 
