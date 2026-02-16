@@ -87,7 +87,7 @@ export const useGameStore = create<GameStateStore>((set, get) => ({
 
     set({ socket })
 
-    socket.on('connect', () => {
+    const handleConnected = () => {
       set({ isConnected: true })
       const profile = getStoredProfile()
       if (!profile) {
@@ -106,11 +106,17 @@ export const useGameStore = create<GameStateStore>((set, get) => ({
           sessionId: profile.sessionId
         })
       }
-    })
+    }
+
+    socket.on('connect', handleConnected)
 
     socket.on('disconnect', () => {
       set({ isConnected: false })
     })
+
+    if (socket.connected) {
+      handleConnected()
+    }
     
     // 设置事件监听
     socket.on(ServerEvents.ROOM_LIST, (rooms) => {
