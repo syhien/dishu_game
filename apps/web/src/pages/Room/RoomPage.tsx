@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useGameStore } from '../../store/gameStore'
 import {
@@ -29,6 +29,41 @@ const SPELL_COUNT_MAP: Record<CbmfsSpellType, number> = SPELL_OPTIONS.reduce((ac
   acc[item.type] = item.count
   return acc
 }, {} as Record<CbmfsSpellType, number>)
+
+const SPELL_RULES: Record<CbmfsSpellType, { success: string; fail: string }> = {
+  [CbmfsSpellType.ANCIENT_DRAGON]: {
+    success: '其他玩家各扣 1-3❤️（每个目标独立结算）',
+    fail: '你自己扣 1-3❤️'
+  },
+  [CbmfsSpellType.DARK_GHOST]: {
+    success: '其他玩家各扣 1❤️，你自己 +1❤️（上限6）',
+    fail: '你自己扣 1❤️'
+  },
+  [CbmfsSpellType.SWEET_DREAM]: {
+    success: '你自己 +1-3❤️（上限6）',
+    fail: '你自己扣 1❤️'
+  },
+  [CbmfsSpellType.OWL]: {
+    success: '获得 1 张秘密牌；本轮存活时每张秘密牌额外 +1 分',
+    fail: '你自己扣 1❤️'
+  },
+  [CbmfsSpellType.THUNDERSTORM]: {
+    success: '上家与下家各扣 1❤️',
+    fail: '你自己扣 1❤️'
+  },
+  [CbmfsSpellType.BLIZZARD]: {
+    success: '上家扣 1❤️',
+    fail: '你自己扣 1❤️'
+  },
+  [CbmfsSpellType.FIREBALL]: {
+    success: '下家扣 1❤️',
+    fail: '你自己扣 1❤️'
+  },
+  [CbmfsSpellType.POTION]: {
+    success: '你自己 +1❤️（上限6）',
+    fail: '你自己扣 1❤️'
+  }
+}
 
 export default function RoomPage() {
   const { roomId } = useParams()
@@ -272,33 +307,106 @@ function CbmfsBoard({
   const isMyTurn = state.currentPlayer === currentUserId
   const isGameOver = !!state.winner
   const lastSpellCount = state.lastCastSpell ? SPELL_COUNT_MAP[state.lastCastSpell] : 0
+  const [pendingSpell, setPendingSpell] = useState<CbmfsSpellType | null>(null)
+  const [floatingNotice, setFloatingNotice] = useState<string | null>(null)
+  const mySecretCards = state.secretCards?.[currentUserId] || []
+  const selectedSpell = pendingSpell ? SPELL_OPTIONS.find(item => item.type === pendingSpell) : null
+
+  useEffect(() => {
+    if (!isMyTurn || isGameOver) {
+      setPendingSpell(null)
+    }
+  }, [isMyTurn, isGameOver])
+
+  useEffect(() => {
+    const latestLog = state.actionLog[0]
+    if (!latestLog) {
+      return
+    }
+
+    setFloatingNotice(latestLog)
+    const timer = window.setTimeout(() => setFloatingNotice(null), 2600)
+    return () => window.clearTimeout(timer)
+  }, [state.actionLog])
 
   return (
     <div className="cbmfs-container">
+      {floatingNotice && (
+        <div className="cbmfs-floating-notice">{floatingNotice}</div>
+      )}
+
       <div className="cbmfs-status-row">
         <span>第 {state.round} 轮</span>
         <span>目标分：8</span>
         <span>秘密牌剩余：{state.secretDeck.length}</span>
       </div>
 
+      <div className="cbmfs-secret-panel">
+        <h4>你的秘密牌</h4>
+        {mySecretCards.length === 0 ? (
+          <p className="cbmfs-log-empty">暂无秘密牌</p>
+        ) : (
+          <div className="cbmfs-hand-list">
+            {mySecretCards.map((spell, index) => {
+              const info = SPELL_OPTIONS.find(item => item.type === spell)
+              return (
+                <span key={`secret-${index}`} className="spell-tag">
+                  {info?.icon} {info?.name}
+                </span>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
       <div className="cbmfs-action-panel">
-        <h4>声明你要施放的魔法</h4>
+        <h4>声明你要施放的魔法（点击后需要二次确认）</h4>
         <div className="spell-grid">
           {SPELL_OPTIONS.map((spell) => {
             const isRarerThanLast = !!state.lastCastSpell && spell.count < lastSpellCount
+            const isSelected = pendingSpell === spell.type
             return (
-              <button
+              <div
                 key={spell.type}
-                className="spell-btn"
-                onClick={() => onCast(spell.type)}
-                disabled={!isMyTurn || isGameOver || isRarerThanLast}
+                className={`spell-btn ${isSelected ? 'selected' : ''}`}
                 title={isRarerThanLast ? '不能比上一个魔法更稀有' : spell.name}
               >
-                <span>{spell.icon} {spell.name}</span>
-                <small>卡池数量 {spell.count}</small>
-              </button>
+                <button
+                  type="button"
+                  className="spell-btn-main"
+                  onClick={() => setPendingSpell(isSelected ? null : spell.type)}
+                  disabled={!isMyTurn || isGameOver || isRarerThanLast}
+                >
+                  <span>{spell.icon} {spell.name}</span>
+                  <small>卡池数量 {spell.count}</small>
+                </button>
+                {isSelected && isMyTurn && !isGameOver && !isRarerThanLast && (
+                  <button
+                    type="button"
+                    className="btn btn-primary spell-confirm-btn"
+                    onClick={() => {
+                      onCast(spell.type)
+                      setPendingSpell(null)
+                    }}
+                  >
+                    确认释放
+                  </button>
+                )}
+              </div>
             )
           })}
+        </div>
+
+        <div className="spell-quick-lookup">
+          {selectedSpell ? (
+            <>
+              <h5>{selectedSpell.icon} {selectedSpell.name} · 效果速查</h5>
+              <p><strong>成功：</strong>{SPELL_RULES[selectedSpell.type].success}</p>
+              <p><strong>失败：</strong>{SPELL_RULES[selectedSpell.type].fail}</p>
+            </>
+          ) : (
+            <p className="spell-lookup-hint">先点一个魔法查看效果，再点“确认释放”。</p>
+          )}
         </div>
 
         <button

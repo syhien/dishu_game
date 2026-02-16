@@ -80,6 +80,7 @@ export interface CbmfsState extends GameState {
   drawPile: CbmfsSpellType[];
   discardPile: CbmfsSpellType[];
   secretDeck: CbmfsSpellType[];
+  secretCards: Record<string, CbmfsSpellType[]>;
   collectedSecrets: Record<string, number>;
   lastCastSpell?: CbmfsSpellType;
   actionLog: string[];

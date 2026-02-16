@@ -80,8 +80,12 @@ export class CbmfsGame {
 
     if (cardIndex < 0) {
       const damage = spellType === CbmfsSpellType.ANCIENT_DRAGON ? this.rollD3() : 1;
+      const beforeHealth = newState.health[playerId];
       this.applyDamage(newState, playerId, damage);
-      this.appendLog(newState, `❌ ${this.getPlayerLabel(newState, playerId)}施法失败（${this.getSpellName(spellType)}），扣除${damage}❤️`);
+      this.appendLog(
+        newState,
+        `❌ ${this.getPlayerLabel(newState, playerId)}施法失败（${this.getSpellName(spellType)}），扣除${damage}❤️（${beforeHealth}→${newState.health[playerId]}）`
+      );
       newState.lastCastSpell = undefined;
 
       if (newState.health[playerId] <= 0) {
@@ -93,8 +97,9 @@ export class CbmfsGame {
 
     hand.splice(cardIndex, 1);
     newState.discardPile.push(spellType);
-    this.applySpellEffect(newState, playerId, spellType);
+    const effectSummary = this.applySpellEffect(newState, playerId, spellType);
     this.appendLog(newState, `✨ ${this.getPlayerLabel(newState, playerId)}施放了${this.getSpellName(spellType)}`);
+    this.appendLog(newState, `📌 ${effectSummary}`);
     newState.lastCastSpell = spellType;
 
     if (newState.hands[playerId].length === 0) {
@@ -188,11 +193,13 @@ export class CbmfsGame {
     const hands: Record<string, CbmfsSpellType[]> = {};
     const health: Record<string, number> = {};
     const collectedSecrets: Record<string, number> = {};
+    const secretCards: Record<string, CbmfsSpellType[]> = {};
 
     players.forEach(playerId => {
       hands[playerId] = [];
       health[playerId] = MAX_HEALTH;
       collectedSecrets[playerId] = 0;
+      secretCards[playerId] = [];
     });
 
     for (let i = 0; i < HAND_SIZE; i++) {
@@ -221,72 +228,95 @@ export class CbmfsGame {
       drawPile: deck,
       discardPile: [],
       secretDeck,
+      secretCards,
       collectedSecrets,
       lastCastSpell: undefined,
       actionLog: lastRoundSummary ? [`📣 上轮结算：${lastRoundSummary}`] : []
     };
   }
 
-  private static applySpellEffect(state: CbmfsState, playerId: string, spellType: CbmfsSpellType): void {
+  private static applySpellEffect(state: CbmfsState, playerId: string, spellType: CbmfsSpellType): string {
     if (spellType === CbmfsSpellType.ANCIENT_DRAGON) {
+      const details: string[] = [];
       state.players.forEach(id => {
         if (id !== playerId) {
-          this.applyDamage(state, id, this.rollD3());
+          const beforeHealth = state.health[id];
+          const damage = this.rollD3();
+          this.applyDamage(state, id, damage);
+          details.push(`${this.getPlayerLabel(state, id)}-${damage}❤️（${beforeHealth}→${state.health[id]}）`);
         }
       });
-      return;
+      return details.join('，');
     }
 
     if (spellType === CbmfsSpellType.DARK_GHOST) {
+      const details: string[] = [];
       state.players.forEach(id => {
         if (id !== playerId) {
+          const beforeHealth = state.health[id];
           this.applyDamage(state, id, 1);
+          details.push(`${this.getPlayerLabel(state, id)}-1❤️（${beforeHealth}→${state.health[id]}）`);
         }
       });
+      const selfBefore = state.health[playerId];
       this.heal(state, playerId, 1);
-      return;
+      details.push(`${this.getPlayerLabel(state, playerId)}+1❤️（${selfBefore}→${state.health[playerId]}）`);
+      return details.join('，');
     }
 
     if (spellType === CbmfsSpellType.SWEET_DREAM) {
-      this.heal(state, playerId, this.rollD3());
-      return;
+      const healAmount = this.rollD3();
+      const beforeHealth = state.health[playerId];
+      this.heal(state, playerId, healAmount);
+      return `${this.getPlayerLabel(state, playerId)}+${healAmount}❤️（${beforeHealth}→${state.health[playerId]}）`;
     }
 
     if (spellType === CbmfsSpellType.OWL) {
       const secret = state.secretDeck.shift();
       if (secret) {
+        state.secretCards[playerId].push(secret);
         state.collectedSecrets[playerId] += 1;
+        return `${this.getPlayerLabel(state, playerId)}获得秘密牌：${this.getSpellName(secret)}`;
       }
-      return;
+      return `${this.getPlayerLabel(state, playerId)}想获取秘密牌，但秘密牌堆已空`;
     }
 
     const { prev, next } = this.getNeighbors(state.turnOrder, playerId);
 
     if (spellType === CbmfsSpellType.THUNDERSTORM) {
       const targets = new Set<string>([prev, next]);
+      const details: string[] = [];
       targets.forEach(id => {
         if (id !== playerId) {
+          const beforeHealth = state.health[id];
           this.applyDamage(state, id, 1);
+          details.push(`${this.getPlayerLabel(state, id)}-1❤️（${beforeHealth}→${state.health[id]}）`);
         }
       });
-      return;
+      return details.length > 0 ? details.join('，') : '没有可生效目标';
     }
 
     if (spellType === CbmfsSpellType.BLIZZARD) {
       if (prev !== playerId) {
+        const beforeHealth = state.health[prev];
         this.applyDamage(state, prev, 1);
+        return `${this.getPlayerLabel(state, prev)}-1❤️（${beforeHealth}→${state.health[prev]}）`;
       }
-      return;
+      return '没有可生效目标';
     }
 
     if (spellType === CbmfsSpellType.FIREBALL) {
       if (next !== playerId) {
+        const beforeHealth = state.health[next];
         this.applyDamage(state, next, 1);
+        return `${this.getPlayerLabel(state, next)}-1❤️（${beforeHealth}→${state.health[next]}）`;
       }
-      return;
+      return '没有可生效目标';
     }
 
+    const beforeHealth = state.health[playerId];
     this.heal(state, playerId, 1);
+    return `${this.getPlayerLabel(state, playerId)}+1❤️（${beforeHealth}→${state.health[playerId]}）`;
   }
 
   private static drawToHand(state: CbmfsState, playerId: string): void {
@@ -376,12 +406,14 @@ export class CbmfsGame {
     const health: Record<string, number> = {};
     const scores: Record<string, number> = {};
     const collectedSecrets: Record<string, number> = {};
+    const secretCards: Record<string, CbmfsSpellType[]> = {};
 
     state.players.forEach(playerId => {
       hands[playerId] = [...(state.hands[playerId] || [])];
       health[playerId] = state.health[playerId] || 0;
       scores[playerId] = state.scores[playerId] || 0;
       collectedSecrets[playerId] = state.collectedSecrets[playerId] || 0;
+      secretCards[playerId] = [...(state.secretCards[playerId] || [])];
     });
 
     return {
@@ -392,6 +424,7 @@ export class CbmfsGame {
       hands,
       health,
       scores,
+      secretCards,
       collectedSecrets,
       drawPile: [...state.drawPile],
       discardPile: [...state.discardPile],
