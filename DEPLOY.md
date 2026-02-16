@@ -1,112 +1,113 @@
 # 🚀 部署指南
 
-## 方式一：GitHub Actions 自动部署（推荐）
-
-### 1. 启用 Actions
-
-进入 GitHub 仓库页面 → **Actions** 标签 → 点击 **"I understand my workflows, go ahead and enable them"**
-
-### 2. 配置 Secrets（可选，用于自动部署到服务器）
-
-如果需要自动部署到自有服务器，在仓库设置中添加以下 Secrets：
-
-| Secret 名称 | 说明 | 示例 |
-|------------|------|------|
-| `SSH_HOST` | 服务器 IP 地址 | `192.168.1.100` 或 `your-domain.com` |
-| `SSH_USER` | SSH 用户名 | `root` |
-| `SSH_KEY` | SSH 私钥 | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
-| `DEPLOY_PATH` | 服务器上的部署路径 | `/opt/dishu_game` |
-
-**生成 SSH 密钥对：**
-```bash
-ssh-keygen -t ed25519 -C "github-actions" -f github_actions_key
-# 将公钥添加到服务器的 ~/.ssh/authorized_keys
-cat github_actions_key.pub >> ~/.ssh/authorized_keys
-# 将私钥内容复制到 GitHub Secrets 中的 SSH_KEY
-```
-
-### 3. 工作流说明
-
-| 工作流 | 触发条件 | 功能 |
-|--------|---------|------|
-| `ci.yml` | 每次 push/PR | 编译测试 |
-| `docker.yml` | push 标签或 main 分支 | 构建并推送 Docker 镜像到 GitHub Container Registry |
-| `deploy.yml` | 手动触发或推送标签 | 部署到服务器（需配置 Secrets） |
-
-### 4. 手动触发部署
-
-1. 进入 GitHub 仓库 → Actions → Deploy to Server
-2. 点击 **Run workflow**
-
----
-
-## 方式二：手动部署
-
-### 使用 Docker Compose（推荐）
+## 快速部署
 
 ```bash
 # 1. 克隆代码
 git clone https://github.com/syhien/dishu_game.git
 cd dishu_game
 
-# 2. 启动服务
-docker compose up -d --build
+# 2. （可选）自定义配置
+cp .env.example .env
+vim .env
 
-# 3. 查看日志
+# 3. 启动服务
+docker compose up -d
+
+# 4. 查看日志
 docker compose logs -f
 ```
 
-### 传统部署
+访问 `http://服务器IP` 即可。
 
+## 自动更新
+
+已内置 Watchtower，每 5 分钟自动检查镜像更新。
+
+如需手动立即更新：
 ```bash
-# 后端
-cd apps/server
-npm install
-npm run build
-npm start
+# 方法1：使用 watchtower
+docker compose exec watchtower --run-once
 
-# 前端（新终端）
-cd apps/web
-npm install
-npm run build
-# 将 dist 文件夹部署到 Nginx 或静态托管服务
+# 方法2：直接拉取最新镜像
+docker compose pull
+docker compose up -d
 ```
 
----
+## 防火墙配置
 
-## 方式三：使用部署脚本
-
+### Linux (iptables/ufw)
 ```bash
-# 赋予执行权限
-chmod +x deploy.sh
-
-# 执行部署
-./deploy.sh 192.168.1.100 /opt/dishu_game
+# 开放 80 和 3001 端口
+sudo ufw allow 80/tcp
+sudo ufw allow 3001/tcp
+sudo ufw reload
 ```
 
----
+### Windows
+```powershell
+# 以管理员身份运行
+netsh advfirewall firewall add rule name="Dishu Game" dir=in action=allow protocol=tcp localport=80,3001
+```
 
-## 🌐 云服务一键部署
+### 云服务器
+在控制台配置安全组规则，允许入站：
+- 端口 80 (HTTP)
+- 端口 3001 (WebSocket)
 
-### Railway
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template)
+## 配置 HTTPS（可选）
 
-### Render
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+使用 Nginx + Let's Encrypt：
 
----
+```nginx
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
 
-## 📋 部署后检查清单
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
 
-- [ ] 防火墙开放 3000（前端）和 3001（后端）端口
-- [ ] 如果是云服务器，配置安全组规则
-- [ ] 配置域名（可选）
-- [ ] 配置 HTTPS（使用 Nginx + Let's Encrypt）
+    location / {
+        proxy_pass http://localhost:80;
+    }
 
-## 🔒 生产环境建议
+    location /socket.io/ {
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
 
-1. **使用反向代理**（Nginx/Caddy）
-2. **启用 HTTPS**（Let's Encrypt）
-3. **配置环境变量**（不要硬编码）
-4. **设置日志轮转**（防止磁盘占满）
-5. **配置监控报警**（Prometheus + Grafana）
+## 查看服务状态
+
+```bash
+# 查看所有容器状态
+docker compose ps
+
+# 查看日志
+docker compose logs -f
+
+# 查看后端日志
+docker compose logs -f server
+
+# 查看前端日志
+docker compose logs -f web
+```
+
+## 停止服务
+
+```bash
+docker compose down
+
+# 同时删除数据卷
+docker compose down -v
+```
+
+## 更新配置
+
+修改 `.env` 文件后：
+```bash
+docker compose up -d
+```

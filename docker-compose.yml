@@ -1,54 +1,79 @@
 version: '3.8'
 
+# 嘀咕游戏 - Docker Compose 配置
+# 用法: docker compose up -d
+#
+# 首次使用请先创建 .env 文件: cp .env.example .env
+
 services:
-  # Redis 服务（用于会话和房间数据缓存）
   redis:
     image: redis:7-alpine
     container_name: dishu-redis
-    ports:
-      - "6379:6379"
+    restart: always
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - dishu-network
 
-  # 后端服务
   server:
-    build:
-      context: ./apps/server
-      dockerfile: Dockerfile
+    image: ghcr.io/syhien/dishu_game-server:latest
     container_name: dishu-server
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "${SERVER_PORT:-3001}:${SERVER_PORT:-3001}"
     environment:
-      - NODE_ENV=${NODE_ENV:-production}
+      - NODE_ENV=production
       - PORT=${SERVER_PORT:-3001}
       - HOST=${SERVER_HOST:-0.0.0.0}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
     depends_on:
       - redis
-    volumes:
-      - ./apps/server:/app
-      - /app/node_modules
-    restart: unless-stopped
+    networks:
+      - dishu-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  # 前端服务
   web:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-      args:
-        # 构建时传入的环境变量
-        - VITE_APP_NAME=${VITE_APP_NAME:-嘀咕游戏}
-        - VITE_APP_SUBTITLE=${VITE_APP_SUBTITLE:-在线多人游戏平台}
-        - VITE_APP_LOGO=${VITE_APP_LOGO:-🎮}
-        - VITE_THEME_PRIMARY=${VITE_THEME_PRIMARY:-#667eea}
-        - VITE_THEME_SECONDARY=${VITE_THEME_SECONDARY:-#764ba2}
+    image: ghcr.io/syhien/dishu_game-web:latest
     container_name: dishu-web
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "80:80"
     depends_on:
       - server
-    restart: unless-stopped
+    networks:
+      - dishu-network
+
+  # Watchtower - 自动更新镜像
+  # 每 5 分钟检查一次 ghcr.io 上的镜像更新
+  watchtower:
+    image: containrrr/watchtower
+    container_name: dishu-watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=300  # 5 分钟检查一次
+      - WATCHTOWER_LABEL_ENABLE=true   # 只更新带标签的容器
+      - WATCHTOWER_CLEANUP=true        # 清理旧镜像
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - dishu-network
 
 volumes:
   redis_data:
+
+networks:
+  dishu-network:
+    driver: bridge

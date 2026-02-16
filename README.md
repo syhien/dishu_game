@@ -1,6 +1,5 @@
 # 🎮 嘀咕游戏 (Dishu Game)
 
-[![CI](https://github.com/syhien/dishu_game/actions/workflows/ci.yml/badge.svg)](https://github.com/syhien/dishu_game/actions/workflows/ci.yml)
 [![Docker](https://github.com/syhien/dishu_game/actions/workflows/docker.yml/badge.svg)](https://github.com/syhien/dishu_game/actions/workflows/docker.yml)
 [![Release](https://github.com/syhien/dishu_game/actions/workflows/release.yml/badge.svg)](https://github.com/syhien/dishu_game/actions/workflows/release.yml)
 
@@ -12,108 +11,76 @@
 - 🎲 **多种游戏** - 支持五子棋等多种游戏（持续添加中）
 - 👥 **多人联机** - 实时对战，低延迟同步
 - 📱 **跨设备** - 支持 PC、手机、平板等各种设备
-- 🐳 **易于部署** - 使用 Docker 一键部署到云服务器
-- 🚀 **CI/CD** - GitHub Actions 自动构建和部署
+- 🐳 **易于部署** - Docker 一键部署，自动更新
+- 🎨 **可定制** - 支持修改名称、主题色等
 
 ## 技术栈
 
 - **前端**: React + TypeScript + Vite + Zustand
 - **后端**: Node.js + Express + Socket.io
-- **部署**: Docker + Docker Compose + GitHub Actions
+- **部署**: Docker + Docker Compose + Watchtower
 
 ## 快速开始
 
-### 本地开发
+### 环境要求
+
+- Docker & Docker Compose
+- （可选）如需自定义配置，复制 `.env.example` 为 `.env`
+
+### Docker 一键部署
 
 ```bash
-# 安装后端依赖
-cd apps/server
-npm install
-npm run dev
+# 1. 克隆代码（只包含 docker-compose.yml 和 .env）
+git clone --depth 1 https://github.com/syhien/dishu_game.git
+cd dishu_game
 
-# 安装前端依赖（新开终端）
-cd apps/web
-npm install
-npm run dev
-```
-
-### 自定义配置（可选）
-
-```bash
-# 复制环境变量模板
+# 2. （可选）自定义配置
 cp .env.example .env
+# 编辑 .env 修改 VITE_APP_NAME, VITE_THEME_PRIMARY 等
 
-# 编辑 .env 文件修改配置
-vim .env
-```
+# 3. 启动服务
+docker compose up -d
 
-常用配置项：
-- `VITE_APP_NAME` - 游戏平台名称（默认：嘀咕游戏）
-- `VITE_APP_SUBTITLE` - 副标题（默认：在线多人游戏平台）
-- `VITE_THEME_PRIMARY` - 主题主色（默认：#667eea）
-- `VITE_THEME_SECONDARY` - 主题辅色（默认：#764ba2）
-- `SERVER_PORT` - 后端端口（默认：3001）
-
-### Docker 部署
-
-```bash
-# 构建并启动所有服务
-docker compose up --build -d
-
-# 查看日志
+# 4. 查看日志
 docker compose logs -f
-
-# 停止服务
-docker compose down
 ```
 
 访问 http://localhost 即可进入游戏。
 
-### 使用预构建镜像（推荐用于生产环境）
+### 自动更新
 
+已内置 [Watchtower](https://containrrr.dev/watchtower/)，每 5 分钟自动检查并更新镜像到最新版本。
+
+如需立即更新：
 ```bash
-# 使用生产环境配置
-docker compose -f docker-compose.prod.yml up -d
-
-# 或者手动拉取最新镜像
-docker pull ghcr.io/syhien/dishu_game-server:latest
-docker pull ghcr.io/syhien/dishu_game-web:latest
+docker compose exec watchtower --run-once
 ```
 
-## GitHub Actions 工作流
+## 自定义配置
 
-| 工作流 | 说明 | 触发条件 |
-|--------|------|---------|
-| [CI](.github/workflows/ci.yml) | 代码检查和构建测试 | 每次 Push / PR |
-| [Docker](.github/workflows/docker.yml) | 构建并推送 Docker 镜像 | Push 到 main 或发布标签 |
-| [Deploy](.github/workflows/deploy.yml) | 自动部署到服务器 | 手动触发或发布标签 |
-| [Release](.github/workflows/release.yml) | 创建 GitHub Release | 推送 v* 标签 |
+复制 `.env.example` 为 `.env`，修改以下变量：
 
-### 启用自动部署
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `VITE_APP_NAME` | 嘀咕游戏 | 游戏平台名称 |
+| `VITE_APP_SUBTITLE` | 在线多人游戏平台 | 副标题 |
+| `VITE_APP_LOGO` | 🎮 | Logo 图标（emoji） |
+| `VITE_THEME_PRIMARY` | #667eea | 主题主色 |
+| `VITE_THEME_SECONDARY` | #764ba2 | 主题辅色 |
+| `SERVER_PORT` | 3001 | 后端端口 |
 
-1. Fork 本仓库并克隆到本地
-2. 在 GitHub 仓库设置 → Secrets and variables → Actions 中添加以下 Secrets：
-   - `SSH_HOST`: 你的服务器 IP
-   - `SSH_USER`: SSH 用户名（如 root）
-   - `SSH_KEY`: SSH 私钥内容
-   - `DEPLOY_PATH`: 部署路径（如 /opt/dishu_game）
-
-3. 在仓库页面点击 Actions → 启用 Workflows
-
-详细部署指南见 [DEPLOY.md](DEPLOY.md)
+修改后重启服务生效：
+```bash
+docker compose up -d
+```
 
 ## 项目结构
 
 ```
 dishu_game/
-├── .github/workflows/       # GitHub Actions 配置
-├── apps/
-│   ├── web/                # 前端应用
-│   ├── server/             # 后端服务
-├── docker-compose.yml      # 开发环境配置
-├── docker-compose.prod.yml # 生产环境配置
-├── deploy.sh               # 一键部署脚本
-├── DEPLOY.md               # 部署文档
+├── .github/workflows/       # GitHub Actions（自动构建镜像）
+├── docker-compose.yml       # Docker 编排配置
+├── .env.example             # 环境变量模板
 └── README.md
 ```
 
@@ -130,33 +97,12 @@ dishu_game/
 - 🤏 棋盘可横向滚动，适合小屏幕
 - 👆 触摸优化的按钮尺寸
 
-## 部署到云服务器
+## GitHub Actions
 
-### 方式一：使用 GitHub Actions 自动部署
-
-推送代码后自动构建并部署到服务器。
-
-### 方式二：手动部署
-
-```bash
-# 1. 克隆代码
-git clone https://github.com/syhien/dishu_game.git
-cd dishu_game
-
-# 2. 使用脚本部署（需要配置 SSH 密钥）
-./deploy.sh your-server-ip /opt/dishu_game
-
-# 或者手动 Docker 部署
-docker compose up -d
-```
-
-### 方式三：使用 Docker 镜像
-
-```bash
-# 直接使用 GitHub Container Registry 的镜像
-docker run -d -p 3001:3001 ghcr.io/syhien/dishu_game-server:latest
-docker run -d -p 80:80 ghcr.io/syhien/dishu_game-web:latest
-```
+| 工作流 | 说明 | 触发条件 |
+|--------|------|---------|
+| [Docker](.github/workflows/docker.yml) | 构建并推送 Docker 镜像 | Push 到 main 或发布标签 |
+| [Release](.github/workflows/release.yml) | 创建 GitHub Release | 推送 v* 标签 |
 
 ## 环境变量
 
