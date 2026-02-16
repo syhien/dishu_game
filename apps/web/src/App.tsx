@@ -7,17 +7,17 @@ import RoomPage from './pages/Room/RoomPage'
 import './App.css'
 
 function App() {
-  const { socket, setSocket } = useGameStore()
+  const { setSocket } = useGameStore()
 
   useEffect(() => {
-    if (socket) {
-      return
-    }
-
     let disposed = false
     let activeSocket: { close: () => void } | null = null
 
     const connectSocket = async () => {
+      if (useGameStore.getState().socket) {
+        return
+      }
+
       const { io } = await import('socket.io-client')
       const newSocket = io({
         path: '/socket.io'
@@ -38,7 +38,7 @@ function App() {
       disposed = true
       activeSocket?.close()
     }
-  }, [socket, setSocket])
+  }, [setSocket])
 
   return (
     <div className="app">
