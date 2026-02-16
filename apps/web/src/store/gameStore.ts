@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { Socket } from 'socket.io-client'
-import { User, Room, GameState, ServerEvents, ClientEvents } from '../types'
+import { User, Room, GameState, ServerEvents, ClientEvents, GameType, MakeMoveRequest } from '../types'
 
 interface GameStateStore {
   // 连接
@@ -28,11 +28,11 @@ interface GameStateStore {
   
   // 操作
   login: (name: string, avatar: string) => void
-  createRoom: (name: string, gameType: 'gomoku') => void
+  createRoom: (name: string, gameType: GameType) => void
   joinRoom: (roomId: string) => void
   leaveRoom: () => void
   startGame: () => void
-  makeMove: (x: number, y: number) => void
+  makeMove: (move: Omit<MakeMoveRequest, 'roomId'>) => void
   resetGame: () => void
 }
 
@@ -149,10 +149,10 @@ export const useGameStore = create<GameStateStore>((set, get) => ({
     }
   },
 
-  makeMove: (x, y) => {
+  makeMove: (move) => {
     const { socket, currentRoom } = get()
     if (socket && currentRoom) {
-      socket.emit(ClientEvents.GAME_MAKE_MOVE, { roomId: currentRoom.id, x, y })
+      socket.emit(ClientEvents.GAME_MAKE_MOVE, { roomId: currentRoom.id, ...move })
     }
   },
 

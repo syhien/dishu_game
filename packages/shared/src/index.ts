@@ -31,7 +31,8 @@ export enum RoomStatus {
 
 // 游戏类型
 export enum GameType {
-  GOMOKU = 'gomoku'  // 五子棋
+  GOMOKU = 'gomoku',  // 五子棋
+  CBMFS = 'cbmfs'     // 出包魔法师
 }
 
 // 游戏状态基类
@@ -54,6 +55,34 @@ export interface GomokuMove {
   x: number;
   y: number;
   timestamp: number;
+}
+
+export enum CbmfsSpellType {
+  ANCIENT_DRAGON = 'ancient_dragon',
+  DARK_GHOST = 'dark_ghost',
+  SWEET_DREAM = 'sweet_dream',
+  OWL = 'owl',
+  THUNDERSTORM = 'thunderstorm',
+  BLIZZARD = 'blizzard',
+  FIREBALL = 'fireball',
+  POTION = 'potion'
+}
+
+export interface CbmfsState extends GameState {
+  type: GameType.CBMFS;
+  players: string[];
+  turnOrder: string[];
+  round: number;
+  health: Record<string, number>;
+  scores: Record<string, number>;
+  hands: Record<string, CbmfsSpellType[]>;
+  drawPile: CbmfsSpellType[];
+  discardPile: CbmfsSpellType[];
+  secretDeck: CbmfsSpellType[];
+  collectedSecrets: Record<string, number>;
+  lastCastSpell?: CbmfsSpellType;
+  actionLog: string[];
+  lastRoundSummary?: string;
 }
 
 // WebSocket 事件
@@ -108,8 +137,10 @@ export interface JoinRoomRequest {
 
 export interface MakeMoveRequest {
   roomId: string;
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
+  action?: 'gomoku_place' | 'cbmfs_cast' | 'cbmfs_end_turn';
+  spellType?: CbmfsSpellType;
 }
 
 export interface LoginRequest {

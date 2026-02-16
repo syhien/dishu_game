@@ -28,7 +28,8 @@ export enum RoomStatus {
 }
 
 export enum GameType {
-  GOMOKU = 'gomoku'
+  GOMOKU = 'gomoku',
+  CBMFS = 'cbmfs'
 }
 
 export interface GameState {
@@ -50,6 +51,34 @@ export interface GomokuMove {
   x: number;
   y: number;
   timestamp: number;
+}
+
+export enum CbmfsSpellType {
+  ANCIENT_DRAGON = 'ancient_dragon',
+  DARK_GHOST = 'dark_ghost',
+  SWEET_DREAM = 'sweet_dream',
+  OWL = 'owl',
+  THUNDERSTORM = 'thunderstorm',
+  BLIZZARD = 'blizzard',
+  FIREBALL = 'fireball',
+  POTION = 'potion'
+}
+
+export interface CbmfsState extends GameState {
+  type: GameType.CBMFS;
+  players: string[];
+  turnOrder: string[];
+  round: number;
+  health: Record<string, number>;
+  scores: Record<string, number>;
+  hands: Record<string, CbmfsSpellType[]>;
+  drawPile: CbmfsSpellType[];
+  discardPile: CbmfsSpellType[];
+  secretDeck: CbmfsSpellType[];
+  collectedSecrets: Record<string, number>;
+  lastCastSpell?: CbmfsSpellType;
+  actionLog: string[];
+  lastRoundSummary?: string;
 }
 
 export enum ServerEvents {
@@ -90,8 +119,10 @@ export interface JoinRoomRequest {
 
 export interface MakeMoveRequest {
   roomId: string;
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
+  action?: 'gomoku_place' | 'cbmfs_cast' | 'cbmfs_end_turn';
+  spellType?: CbmfsSpellType;
 }
 
 export interface LoginRequest {

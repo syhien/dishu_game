@@ -207,6 +207,15 @@
   border: 2px solid #e0e0e0;
   border-radius: 12px;
   cursor: pointer;
+  width: 100%;
+  text-align: left;
+  background: white;
+}
+
+.game-types {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .game-type.selected {

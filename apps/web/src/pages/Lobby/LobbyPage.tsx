@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../../store/gameStore'
-import { ClientEvents, Room } from '../../types'
+import { ClientEvents, GameType, Room } from '../../types'
 import { config } from '../../config'
 import './LobbyPage.css'
+
+const GAME_OPTIONS: { type: GameType; icon: string; name: string }[] = [
+  { type: GameType.GOMOKU, icon: '⚫⚪', name: '五子棋' },
+  { type: GameType.CBMFS, icon: '🪄', name: '出包魔法师' }
+]
 
 export default function LobbyPage() {
   const navigate = useNavigate()
@@ -18,6 +23,7 @@ export default function LobbyPage() {
   
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [roomName, setRoomName] = useState('')
+  const [selectedGameType, setSelectedGameType] = useState<GameType>(GameType.GOMOKU)
 
   // 未登录则返回登录页
   useEffect(() => {
@@ -42,9 +48,10 @@ export default function LobbyPage() {
 
   const handleCreateRoom = () => {
     if (roomName.trim()) {
-      createRoom(roomName.trim(), 'gomoku')
+      createRoom(roomName.trim(), selectedGameType)
       setShowCreateModal(false)
       setRoomName('')
+      setSelectedGameType(GameType.GOMOKU)
     }
   }
 
@@ -120,9 +127,18 @@ export default function LobbyPage() {
             </div>
             <div className="form-group">
               <label>游戏类型</label>
-              <div className="game-type selected">
-                <span className="game-icon">⚫⚪</span>
-                <span>五子棋</span>
+              <div className="game-types">
+                {GAME_OPTIONS.map((option) => (
+                  <button
+                    key={option.type}
+                    type="button"
+                    className={`game-type ${selectedGameType === option.type ? 'selected' : ''}`}
+                    onClick={() => setSelectedGameType(option.type)}
+                  >
+                    <span className="game-icon">{option.icon}</span>
+                    <span>{option.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
             <div className="modal-actions">
@@ -150,13 +166,14 @@ export default function LobbyPage() {
 function RoomCard({ room, onJoin }: { room: Room; onJoin: () => void }) {
   const isFull = room.players.length >= room.maxPlayers
   const isPlaying = room.status === 'playing'
+  const gameTypeName = room.gameType === GameType.CBMFS ? '出包魔法师' : '五子棋'
 
   return (
     <div className={`room-card ${isPlaying ? 'playing' : ''}`}>
       <div className="room-info">
         <h4 className="room-name">{room.name}</h4>
         <div className="room-meta">
-          <span className="game-type-badge">五子棋</span>
+          <span className="game-type-badge">{gameTypeName}</span>
           <span className="player-count">
             {room.players.length}/{room.maxPlayers} 人
           </span>

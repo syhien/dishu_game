@@ -67,6 +67,8 @@ export class RoomManager {
     switch (gameType) {
       case GameType.GOMOKU:
         return 2;
+      case GameType.CBMFS:
+        return 5;
       default:
         return 4;
     }

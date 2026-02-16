@@ -137,7 +137,7 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const result = gameManager.makeMove(room.gameState, user.id, data.x, data.y);
+    const result = gameManager.makeMove(room.gameState, user.id, data);
     if (!result.success) {
       socket.emit(ServerEvents.GAME_ERROR, { message: result.error });
       return;
