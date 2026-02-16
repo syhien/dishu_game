@@ -22,8 +22,9 @@ services:
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-    ports:
-      - "${SERVER_PORT:-3001}:${SERVER_PORT:-3001}"
+    # 不再暴露端口到宿主机，只通过 nginx 反向代理访问
+    expose:
+      - "${SERVER_PORT:-3001}"
     environment:
       - NODE_ENV=production
       - PORT=${SERVER_PORT:-3001}
@@ -48,6 +49,8 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "80:80"
+      # 如需 HTTPS，取消下面注释并配置证书
+      # - "443:443"
     depends_on:
       - server
     networks:

@@ -13,10 +13,10 @@ function App() {
     // 连接 Socket.io 服务器
     const connectSocket = async () => {
       const { io } = await import('socket.io-client')
-      // 使用当前页面主机名+后端端口，支持外部设备访问
-      const serverUrl = `http://${window.location.hostname}:3001`
-      
-      const newSocket = io(serverUrl)
+      // 连接同域，通过 nginx/Caddy 反向代理到后端
+      const newSocket = io({
+        path: '/socket.io',
+      })
       
       newSocket.on('connect', () => {
         console.log('Connected to server')

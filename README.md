@@ -11,7 +11,8 @@
 - 🎲 **多种游戏** - 支持五子棋等多种游戏（持续添加中）
 - 👥 **多人联机** - 实时对战，低延迟同步
 - 📱 **跨设备** - 支持 PC、手机、平板等各种设备
-- 🐳 **易于部署** - Docker 一键部署，自动更新
+- 🐳 **易于部署** - Docker 一键部署，自动更新，单端口对外
+- 🔒 **HTTPS 友好** - 前端同域连接，自动继承 HTTPS
 - 🎨 **可定制** - 支持修改名称、主题色等
 
 ## 技术栈
@@ -67,8 +68,6 @@ docker compose exec watchtower --run-once
 | `VITE_APP_LOGO` | 🎮 | Logo 图标（emoji） |
 | `VITE_THEME_PRIMARY` | #667eea | 主题主色 |
 | `VITE_THEME_SECONDARY` | #764ba2 | 主题辅色 |
-| `SERVER_PORT` | 3001 | 后端端口 |
-
 修改后重启服务生效：
 ```bash
 docker compose up -d
@@ -104,13 +103,20 @@ dishu_game/
 | [Docker](.github/workflows/docker.yml) | 构建并推送 Docker 镜像 | Push 到 main 或发布标签 |
 | [Release](.github/workflows/release.yml) | 创建 GitHub Release | 推送 v* 标签 |
 
+## 架构特点
+
+### 前后端同域部署
+- 前端通过 nginx 反向代理连接后端，无需单独暴露后端端口
+- WebSocket 通过 `/socket.io` 路径代理，支持 WSS
+- 配置 HTTPS 时，前后端自动受益
+
 ## 环境变量
 
-### 后端
+### 后端（内部使用，无需暴露到公网）
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `PORT` | 3001 | 服务端口 |
+| `PORT` | 3001 | 服务端口（仅容器内部使用） |
 | `HOST` | 0.0.0.0 | 监听地址 |
 | `REDIS_URL` | redis://redis:6379 | Redis 连接地址 |
 | `NODE_ENV` | production | 运行环境 |

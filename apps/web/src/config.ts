@@ -13,9 +13,6 @@ export const config = {
     gradient: `linear-gradient(135deg, ${import.meta.env.VITE_THEME_PRIMARY || '#667eea'} 0%, ${import.meta.env.VITE_THEME_SECONDARY || '#764ba2'} 100%)`,
   },
   
-  // 服务器配置
-  serverUrl: import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`,
-  
   // 调试模式
   debug: import.meta.env.VITE_DEBUG === 'true',
 } as const;
