@@ -1,0 +1,88 @@
+// 与后端共享的类型定义
+
+export interface User {
+  id: string;
+  name: string;
+  avatar: string;
+  roomId?: string;
+  isOnline: boolean;
+  joinedAt: number;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  gameType: GameType;
+  status: RoomStatus;
+  hostId: string;
+  players: User[];
+  maxPlayers: number;
+  createdAt: number;
+  gameState?: GameState;
+}
+
+export enum RoomStatus {
+  WAITING = 'waiting',
+  PLAYING = 'playing',
+  FINISHED = 'finished'
+}
+
+export enum GameType {
+  GOMOKU = 'gomoku'
+}
+
+export interface GameState {
+  type: GameType;
+  currentPlayer: string;
+  winner?: string;
+  isDraw?: boolean;
+}
+
+export interface GomokuState extends GameState {
+  type: GameType.GOMOKU;
+  board: (string | null)[][];
+  moves: GomokuMove[];
+  players: string[];
+}
+
+export interface GomokuMove {
+  playerId: string;
+  x: number;
+  y: number;
+  timestamp: number;
+}
+
+export enum ServerEvents {
+  CONNECT = 'connect',
+  DISCONNECT = 'disconnect',
+  USER_JOINED = 'user:joined',
+  USER_LEFT = 'user:left',
+  ROOM_LIST = 'room:list',
+  ROOM_CREATED = 'room:created',
+  ROOM_UPDATED = 'room:updated',
+  ROOM_DELETED = 'room:deleted',
+  GAME_STARTED = 'game:started',
+  GAME_STATE_UPDATED = 'game:stateUpdated',
+  GAME_ENDED = 'game:ended',
+  GAME_MOVE = 'game:move',
+  GAME_ERROR = 'game:error'
+}
+
+export enum ClientEvents {
+  USER_LOGIN = 'user:login',
+  ROOM_CREATE = 'room:create',
+  ROOM_JOIN = 'room:join',
+  ROOM_LEAVE = 'room:leave',
+  ROOM_GET_LIST = 'room:getList',
+  GAME_START = 'game:start',
+  GAME_MAKE_MOVE = 'game:makeMove',
+  GAME_RESET = 'game:reset'
+}
+
+// 头像选项
+export const AVATARS = [
+  '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼',
+  '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔',
+  '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺',
+  '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞'
+];

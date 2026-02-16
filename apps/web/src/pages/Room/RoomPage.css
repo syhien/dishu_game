@@ -1,0 +1,500 @@
+.room-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading-room {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.room-header {
+  background: white;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.room-title {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.game-type {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.room-main {
+  flex: 1;
+  display: flex;
+  padding: 24px;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 玩家面板 */
+.players-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.player-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.player-card.active {
+  border: 3px solid #667eea;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+}
+
+.player-card.winner {
+  border: 3px solid #ffd700;
+  background: linear-gradient(135deg, #fff9e6 0%, #fff 100%);
+  animation: winner-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes winner-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.player-card.waiting {
+  opacity: 0.5;
+}
+
+.player-avatar-large {
+  font-size: 48px;
+}
+
+.player-name-large {
+  font-weight: 600;
+  color: #333;
+}
+
+.player-role {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: #333;
+  color: white;
+}
+
+.player-role.white {
+  background: #ddd;
+  color: #333;
+}
+
+.turn-indicator {
+  position: absolute;
+  top: -10px;
+  background: #667eea;
+  color: white;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  animation: bounce 0.5s ease infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
+/* 游戏区域 */
+.game-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.waiting-area {
+  background: white;
+  border-radius: 24px;
+  padding: 48px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.waiting-area p {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.room-code {
+  font-family: monospace;
+  background: #f0f0f0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px !important;
+}
+
+.start-btn {
+  margin-top: 24px;
+  padding: 16px 48px;
+  font-size: 18px;
+}
+
+.hint {
+  color: #888 !important;
+  font-size: 14px !important;
+}
+
+/* 五子棋棋盘 - 高对比度设计 */
+.gomoku-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gomoku-board {
+  display: grid;
+  gap: 1px;
+  background: #8B4513;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 3px solid #654321;
+}
+
+.gomoku-board.disabled {
+  opacity: 0.9;
+}
+
+.cell {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #DEB887;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.cell:hover:not(:disabled) {
+  background: #D2691E;
+}
+
+.cell:disabled {
+  cursor: default;
+}
+
+/* 棋子样式 - 使用实心圆形 */
+.piece {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  animation: place-piece 0.2s ease;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.piece.black {
+  background: linear-gradient(145deg, #333 0%, #000 100%);
+  border: 1px solid #222;
+}
+
+.piece.white {
+  background: linear-gradient(145deg, #fff 0%, #e0e0e0 100%);
+  border: 1px solid #ccc;
+}
+
+@keyframes place-piece {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.game-status {
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.my-turn {
+  color: #ffd700;
+  animation: blink 1s ease infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* 游戏结果 */
+.game-result {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 24px;
+  padding: 48px 64px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  animation: pop-in 0.3s ease;
+}
+
+@keyframes pop-in {
+  from {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.game-result h3 {
+  font-size: 28px;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+/* 错误提示 */
+.error-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff4757;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  animation: slide-up 0.3s ease;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateX(-50%) translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 棋盘横向滚动容器 */
+.gomoku-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  justify-content: center;
+  padding: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.3) transparent;
+}
+
+/* Webkit 滚动条样式 */
+.gomoku-scroll-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.gomoku-scroll-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gomoku-scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 3px;
+}
+
+/* ==================== 移动端适配 ==================== */
+@media (max-width: 768px) {
+  .room-header {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  
+  .back-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .room-title {
+    font-size: 16px;
+  }
+  
+  .room-main {
+    flex-direction: column;
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .players-panel {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .player-card {
+    flex: 1;
+    max-width: 120px;
+    padding: 16px 12px;
+    border-radius: 12px;
+  }
+  
+  .player-avatar-large {
+    font-size: 36px;
+  }
+  
+  .player-name-large {
+    font-size: 14px;
+  }
+  
+  .player-role {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+  
+  .turn-indicator {
+    font-size: 10px;
+    padding: 2px 8px;
+    top: -8px;
+  }
+  
+  /* 移动端棋盘 - 可横向滚动 */
+  .gomoku-container {
+    gap: 12px;
+    padding: 4px;
+  }
+  
+  .gomoku-board {
+    padding: 4px;
+    border-width: 2px;
+    gap: 0.5px;
+    /* 确保棋盘完整显示 */
+    max-width: 100%;
+  }
+  
+  .cell {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .piece {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .game-status {
+    font-size: 14px;
+  }
+  
+  .waiting-area {
+    padding: 32px 24px;
+    margin: 0 16px;
+  }
+  
+  .waiting-area p {
+    font-size: 16px;
+  }
+  
+  .room-code {
+    font-size: 12px !important;
+    word-break: break-all;
+    display: block;
+    max-width: 250px;
+    margin: 0 auto;
+  }
+  
+  .start-btn {
+    padding: 14px 32px;
+    font-size: 16px;
+  }
+  
+  .game-result {
+    padding: 32px 40px;
+    width: 90%;
+    max-width: 320px;
+  }
+  
+  .game-result h3 {
+    font-size: 20px;
+  }
+}
+
+/* 超小屏幕 */
+@media (max-width: 375px) {
+  .cell {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .piece {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .player-card {
+    padding: 12px 8px;
+  }
+  
+  .player-avatar-large {
+    font-size: 32px;
+  }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1200px) {
+  .cell {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .piece {
+    width: 26px;
+    height: 26px;
+  }
+}

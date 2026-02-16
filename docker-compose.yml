@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Redis 服务（用于会话和房间数据缓存）
+  redis:
+    image: redis:7-alpine
+    container_name: dishu-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # 后端服务
+  server:
+    build:
+      context: ./apps/server
+      dockerfile: Dockerfile
+    container_name: dishu-server
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    volumes:
+      - ./apps/server:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  # 前端服务
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: dishu-web
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  redis_data:
