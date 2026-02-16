@@ -14,7 +14,9 @@ function App() {
     const connectSocket = async () => {
       const { io } = await import('socket.io-client')
       // 直接连接后端容器（Docker 内部网络）
-      const newSocket = io('http://server:3001')
+      const newSocket = io({
+        path: '/socket.io',
+      })
       
       newSocket.on('connect', () => {
         console.log('Connected to server')

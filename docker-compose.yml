@@ -1,8 +1,5 @@
 version: '3.8'
 
-# 嘀咕游戏 - Docker Compose 配置
-# 用法: docker compose up -d
-
 services:
   redis:
     image: redis:7-alpine
@@ -20,8 +17,9 @@ services:
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-    ports:
-      - "${SERVER_PORT:-13001}:3001"
+    # 不暴露到宿主机，只通过 nginx 反向代理访问
+    expose:
+      - "3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -46,8 +44,6 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "${WEB_PORT:-8080}:80"
-    environment:
-      - VITE_SERVER_URL=http://server:3001
     depends_on:
       - server
     networks:
