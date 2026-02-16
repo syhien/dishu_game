@@ -51,7 +51,9 @@ jobs:
         with:
           context: ./apps/server
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server:${{ github.sha }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -61,15 +63,8 @@ jobs:
         with:
           context: ./apps/web
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ github.sha }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      # Push latest tags
-      - name: Tag and push latest
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        run: |
-          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server:latest
-          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-web:latest
