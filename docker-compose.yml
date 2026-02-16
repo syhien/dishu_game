@@ -21,7 +21,7 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:
-      - "3001:3001"
+      - "${SERVER_PORT:-13001}:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -45,9 +45,8 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:
-      - "80:80"
+      - "${WEB_PORT:-8080}:80"
     environment:
-      # 前端直接通过容器名访问后端
       - VITE_SERVER_URL=http://server:3001
     depends_on:
       - server

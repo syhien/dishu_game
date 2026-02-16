@@ -16,26 +16,31 @@ docker compose logs -f
 
 访问 `http://服务器IP` 即可。
 
-## 端口说明
+## 端口说明（可在 .env 中修改）
 
-| 端口 | 用途 | 必须暴露 |
-|------|------|---------|
-| 80 | 前端页面 | 是 |
-| 3001 | 后端 API + WebSocket | 是 |
+| 端口 | 用途 | 默认值 |
+|------|------|--------|
+| 8080 | 前端页面 | 避免与系统 80 冲突 |
+| 13001 | 后端 API + WebSocket | 避免与常用端口冲突 |
 
 ## 防火墙配置
 
 ### Linux (ufw)
 ```bash
-sudo ufw allow 80/tcp
-sudo ufw allow 3001/tcp
+# 使用默认端口
+sudo ufw allow 8080/tcp
+sudo ufw allow 13001/tcp
 sudo ufw reload
+
+# 或修改 .env 后使用自定义端口
+# WEB_PORT=8888
+# SERVER_PORT=18001
 ```
 
 ### 云服务器
 安全组规则允许入站：
-- 80 (HTTP)
-- 3001 (WebSocket)
+- 8080 (前端，可修改)
+- 13001 (后端，可修改)
 
 ## 自动更新
 
