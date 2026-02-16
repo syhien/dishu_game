@@ -18,7 +18,7 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:
-      - "127.0.0.1:${SERVER_PORT:-13001}:3001"  # 仅本地访问，供 Caddy 反代
+      - "127.0.0.1:${SERVER_PORT:-13001}:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -35,14 +35,27 @@ services:
       retries: 3
       start_period: 40s
 
+  # 前端服务 - 如果需要自定义配置，取消注释 build 部分自行构建
   web:
+    # 使用预构建镜像（配置固定为默认值）
     image: ghcr.io/syhien/dishu_game-web:latest
+    
+    # 如需自定义名称/主题色，取消下面注释自行构建：
+    # build:
+    #   context: ./apps/web
+    #   args:
+    #     - VITE_APP_NAME=${VITE_APP_NAME:-嘀咕游戏}
+    #     - VITE_APP_SUBTITLE=${VITE_APP_SUBTITLE:-在线多人游戏平台}
+    #     - VITE_APP_LOGO=${VITE_APP_LOGO:-🎮}
+    #     - VITE_THEME_PRIMARY=${VITE_THEME_PRIMARY:-#667eea}
+    #     - VITE_THEME_SECONDARY=${VITE_THEME_SECONDARY:-#764ba2}
+    
     container_name: dishu-web
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:
-      - "127.0.0.1:${WEB_PORT:-8080}:80"  # 仅本地访问，供 Caddy 反代
+      - "127.0.0.1:${WEB_PORT:-8080}:80"
     depends_on:
       - server
     networks:
