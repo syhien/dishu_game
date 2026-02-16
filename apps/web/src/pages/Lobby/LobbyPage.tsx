@@ -13,8 +13,7 @@ export default function LobbyPage() {
     currentRoom, 
     socket, 
     createRoom, 
-    joinRoom, 
-    setCurrentRoom 
+    joinRoom
   } = useGameStore()
   
   const [showCreateModal, setShowCreateModal] = useState(false)

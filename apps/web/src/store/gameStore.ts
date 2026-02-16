@@ -67,7 +67,7 @@ export const useGameStore = create<GameStateStore>((set, get) => ({
     
     socket.on(ServerEvents.ROOM_UPDATED, (room) => {
       set((state) => {
-        const isPlayerInRoom = room.players.find(p => p.id === state.currentUser?.id)
+        const isPlayerInRoom = room.players.find((p: User) => p.id === state.currentUser?.id)
         return {
           rooms: state.rooms.map(r => r.id === room.id ? room : r),
           // 如果当前用户在房间里，更新 currentRoom

@@ -7,7 +7,7 @@ import RoomPage from './pages/Room/RoomPage'
 import './App.css'
 
 function App() {
-  const { socket, isConnected, setSocket } = useGameStore()
+  const { socket, setSocket } = useGameStore()
 
   useEffect(() => {
     // 连接 Socket.io 服务器
