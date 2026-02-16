@@ -528,6 +528,7 @@ h4 {
     align-items: center;
     text-align: center;
     padding: 12px;
+    border-radius: 12px;
   }
 
   .player-avatar-large {
@@ -554,6 +555,31 @@ h4 {
 
   .spell-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .room-main {
+    padding: 8px;
+    gap: 12px;
+  }
+
+  .game-area {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .cbmfs-secret-panel, .cbmfs-action-panel, .cbmfs-hands-panel, .cbmfs-log-panel {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  
+  .spell-grid {
+    gap: 8px;
+  }
+  
+  .spell-btn-main {
+    padding: 12px 6px;
   }
 }
 

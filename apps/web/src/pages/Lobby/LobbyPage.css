@@ -309,8 +309,19 @@
     display: none; /* Hide name on very small screens if needed, or truncate */
   }
 
+  .lobby-main {
+    padding: 0 12px;
+    margin-top: 16px;
+  }
+
   .room-list {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .room-card {
+    padding: 16px; 
+    border-radius: 16px;
   }
 }
   transform: translateY(-2px);
