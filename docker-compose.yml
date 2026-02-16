@@ -2,8 +2,6 @@ version: '3.8'
 
 # 嘀咕游戏 - Docker Compose 配置
 # 用法: docker compose up -d
-#
-# 首次使用请先创建 .env 文件: cp .env.example .env
 
 services:
   redis:
@@ -22,14 +20,13 @@ services:
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-    # 不再暴露端口到宿主机，只通过 nginx 反向代理访问
-    expose:
-      - "${SERVER_PORT:-3001}"
+    ports:
+      - "3001:3001"
     environment:
       - NODE_ENV=production
-      - PORT=${SERVER_PORT:-3001}
-      - HOST=${SERVER_HOST:-0.0.0.0}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - PORT=3001
+      - HOST=0.0.0.0
+      - REDIS_URL=redis://redis:6379
     depends_on:
       - redis
     networks:
@@ -49,15 +46,14 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "80:80"
-      # 如需 HTTPS，取消下面注释并配置证书
-      # - "443:443"
+    environment:
+      # 前端直接通过容器名访问后端
+      - VITE_SERVER_URL=http://server:3001
     depends_on:
       - server
     networks:
       - dishu-network
 
-  # Watchtower - 自动更新镜像
-  # 每 5 分钟检查一次 ghcr.io 上的镜像更新
   watchtower:
     image: containrrr/watchtower
     container_name: dishu-watchtower
@@ -65,9 +61,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - WATCHTOWER_POLL_INTERVAL=300  # 5 分钟检查一次
-      - WATCHTOWER_LABEL_ENABLE=true   # 只更新带标签的容器
-      - WATCHTOWER_CLEANUP=true        # 清理旧镜像
+      - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_INCLUDE_RESTARTING=true
     labels:
       - "com.centurylinklabs.watchtower.enable=true"

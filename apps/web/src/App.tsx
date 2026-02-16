@@ -13,10 +13,8 @@ function App() {
     // 连接 Socket.io 服务器
     const connectSocket = async () => {
       const { io } = await import('socket.io-client')
-      // 连接同域，通过 nginx/Caddy 反向代理到后端
-      const newSocket = io({
-        path: '/socket.io',
-      })
+      // 直接连接后端容器（Docker 内部网络）
+      const newSocket = io('http://server:3001')
       
       newSocket.on('connect', () => {
         console.log('Connected to server')
