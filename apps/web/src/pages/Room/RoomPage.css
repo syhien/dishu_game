@@ -1,7 +1,9 @@
+/* 房间基础布局 */
 .room-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding-bottom: 20px;
 }
 
 .loading-room {
@@ -10,35 +12,46 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--text-main);
 }
 
 .room-header {
-  background: white;
-  padding: 16px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 12px 24px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .back-btn {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 12px;
 }
 
 .room-title {
   flex: 1;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .room-game-type {
-  background: var(--theme-gradient);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 14px;
+  background: var(--bg-color);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(0,0,0,0.05);
 }
 
 .room-main {
@@ -51,54 +64,518 @@
   width: 100%;
 }
 
-/* 玩家面板 */
+/* 玩家面板 (Desktop: Left Sidebar) */
 .players-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 200px;
+  gap: 12px;
+  width: 260px;
   flex-shrink: 0;
 }
 
 .player-card {
   background: white;
   border-radius: 16px;
-  padding: 24px;
+  padding: 16px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
 }
 
 .player-card.active {
-  border: 3px solid var(--theme-primary);
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  border-color: var(--primary);
+  background: linear-gradient(to right, rgba(108, 93, 211, 0.05), white);
+  box-shadow: var(--shadow-md);
 }
 
 .player-card.winner {
-  border: 3px solid #ffd700;
-  background: linear-gradient(135deg, #fff9e6 0%, #fff 100%);
-  animation: winner-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes winner-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
+  border-color: var(--accent);
+  background: linear-gradient(135deg, #FFF9EB 0%, #ffffff 100%);
+  box-shadow: 0 0 15px rgba(244, 183, 64, 0.3);
 }
 
 .player-card.waiting {
-  opacity: 0.5;
+  background: rgba(255,255,255,0.5);
+  border-style: dashed;
+  color: var(--text-light);
 }
 
 .player-avatar-large {
-  font-size: 48px;
+  font-size: 32px;
+  background: #f0f0f5;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-info-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .player-name-large {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.player-role {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #2D2D3A;
+  color: white;
+  width: fit-content;
+}
+
+.player-role.white {
+  background: white;
+  color: #2D2D3A;
+  border: 1px solid #2D2D3A;
+}
+
+.cbmfs-player-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.turn-indicator {
+  font-size: 11px;
+  color: var(--primary);
   font-weight: 600;
-  color: #333;
+  display: block;
+  margin-top: 4px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* 游戏区域 */
+.game-area {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevent overflow */
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.waiting-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  color: var(--text-secondary);
+}
+
+.room-code {
+  font-family: monospace;
+  background: rgba(0,0,0,0.05);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+/* 五子棋 */
+.gomoku-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.gomoku-scroll-wrapper {
+  padding: 10px;
+  background: #e6c891;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.3);
+  border-radius: 4px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.gomoku-board {
+  display: grid;
+  width: min(80vmin, 600px);
+  height: min(80vmin, 600px);
+  background-color: #eecfa1;
+  background-image: 
+    linear-gradient(#dcb579 2px, transparent 2px),
+    linear-gradient(90deg, #dcb579 2px, transparent 2px);
+  background-size: calc(100% / 15) calc(100% / 15);
+  background-position: center;
+  border: 2px solid #8b5a2b;
+  position: relative;
+}
+
+.gomoku-board::after {
+  /* 棋盘点缀 (天元等) */
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 6px; height: 6px;
+  background: #8b5a2b;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cell {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell:not(.occupied):not(:disabled):hover::after {
+  content: '';
+  width: 60%;
+  height: 60%;
+  background: rgba(0,0,0,0.1);
+  border-radius: 50%;
+}
+
+.piece {
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+  position: relative;
+  animation: dropPiece 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes dropPiece {
+  from { transform: scale(1.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.piece.black {
+  background: radial-gradient(circle at 35% 35%, #666, #000);
+}
+
+.piece.white {
+  background: radial-gradient(circle at 35% 35%, #fff, #ddd);
+}
+
+.game-status {
+  background: white;
+  padding: 10px 24px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.my-turn {
+  color: var(--primary);
+}
+
+/* CBMFS 魔法师 */
+.cbmfs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+.cbmfs-floating-notice {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 24px;
+  z-index: 200;
+  animation: slideUpFade 0.3s forwards;
+  pointer-events: none;
+  font-weight: 600;
+  text-align: center;
+  max-width: 90%;
+}
+
+.cbmfs-status-row {
+  display: flex;
+  gap: 20px;
+  background: rgba(255,255,255,0.6);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  justify-content: center;
+}
+
+.cbmfs-secret-panel, .cbmfs-action-panel, .cbmfs-hands-panel, .cbmfs-log-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cbmfs-action-panel {
+  border: 1px solid var(--primary);
+  background: linear-gradient(to bottom, rgba(108, 93, 211, 0.02), white);
+}
+
+h4 {
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spell-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #F0F2F5;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.spell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.spell-btn {
+  position: relative;
+  transition: all 0.2s;
+}
+
+.spell-btn-main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  border: 2px solid #E4E7EB;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spell-btn-main:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.spell-btn.selected .spell-btn-main {
+  border-color: var(--primary);
+  background: rgba(108, 93, 211, 0.05);
+  box-shadow: 0 0 0 2px rgba(108, 93, 211, 0.1);
+}
+
+.spell-btn-main span {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.spell-btn-main small {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.spell-confirm-btn {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 100%;
+  white-space: nowrap;
+  animation: slideUpFade 0.2s;
+}
+
+.spell-quick-lookup {
+  background: #F7F7FA;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  border-left: 4px solid var(--secondary);
+}
+
+.spell-quick-lookup h5 {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.cbmfs-hands-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.cbmfs-hand-card {
+  border: 1px solid #eee;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.cbmfs-hand-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.cbmfs-self-hidden {
+  color: var(--text-light);
+  font-style: italic;
+  font-size: 13px;
+  text-align: center;
+  padding: 10px;
+}
+
+.game-result {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(45, 45, 58, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  color: white;
+  border-radius: 24px;
+  animation: fadeIn 0.3s;
+}
+
+.game-result h3 {
+  font-size: 32px;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.error-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FF4D4D;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(255, 77, 77, 0.4);
+  z-index: 999;
+  animation: slideUp 0.3s;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 900px) {
+  .room-main {
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .players-panel {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .player-card {
+    min-width: 140px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .player-avatar-large {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+
+  .player-info-col {
+    align-items: center;
+  }
+
+  .player-name-large {
+    font-size: 13px;
+  }
+
+  .room-header {
+    padding: 10px 16px;
+  }
+  
+  .room-title {
+    font-size: 16px;
+  }
+
+  .spell-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .spell-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .spell-confirm-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: calc(100% - 40px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transform: none;
+    animation: slideUp 0.3s;
+  }
+
+  .cbmfs-action-panel {
+    padding-bottom: 20px; /* Space for fixed button if present */
+  }
+}  color: #333;
 }
 
 .player-role {

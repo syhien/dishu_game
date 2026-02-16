@@ -138,19 +138,21 @@ export default function RoomPage() {
               className={`player-card ${(gameState?.currentPlayer === player.id) ? 'active' : ''} ${(gameState?.winner === player.id) ? 'winner' : ''}`}
             >
               <span className="player-avatar-large">{player.avatar}</span>
-              <span className="player-name-large">{player.name}</span>
-              {currentRoom.gameType === GameType.GOMOKU && index === 0 && <span className="player-role">黑棋</span>}
-              {currentRoom.gameType === GameType.GOMOKU && index === 1 && <span className="player-role white">白棋</span>}
-              {currentRoom.gameType === GameType.CBMFS && cbmfsState && (
-                <div className="cbmfs-player-meta">
-                  <span>❤️ {cbmfsState.health[player.id] ?? 0}</span>
-                  <span>🏅 {cbmfsState.scores[player.id] ?? 0}</span>
-                  <span>🦉 {cbmfsState.collectedSecrets[player.id] ?? 0}</span>
-                </div>
-              )}
-              {gameState?.currentPlayer === player.id && (
-                <span className="turn-indicator">思考中...</span>
-              )}
+              <div className="player-info-col">
+                <span className="player-name-large">{player.name}</span>
+                {currentRoom.gameType === GameType.GOMOKU && index === 0 && <span className="player-role">黑棋</span>}
+                {currentRoom.gameType === GameType.GOMOKU && index === 1 && <span className="player-role white">白棋</span>}
+                {currentRoom.gameType === GameType.CBMFS && cbmfsState && (
+                  <div className="cbmfs-player-meta">
+                    <span>❤️{cbmfsState.health[player.id] ?? 0}</span>
+                    <span>🏅{cbmfsState.scores[player.id] ?? 0}</span>
+                    <span>🦉{cbmfsState.collectedSecrets[player.id] ?? 0}</span>
+                  </div>
+                )}
+                {gameState?.currentPlayer === player.id && (
+                  <span className="turn-indicator">思考中...</span>
+                )}
+              </div>
             </div>
           ))}
           

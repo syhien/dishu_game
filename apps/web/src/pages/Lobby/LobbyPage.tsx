@@ -150,7 +150,7 @@ export default function LobbyPage() {
                   <button
                     key={option.type}
                     type="button"
-                    className={`game-option ${selectedGameType === option.type ? 'selected' : ''}`}
+                    className={`game-type-option ${selectedGameType === option.type ? 'selected' : ''}`}
                     onClick={() => setSelectedGameType(option.type)}
                     aria-pressed={selectedGameType === option.type}
                   >
@@ -193,32 +193,38 @@ function RoomCard({ room, onJoin }: { room: Room; onJoin: () => void }) {
 
   return (
     <div className={`room-card ${isPlaying ? 'playing' : ''}`}>
-      <div className="room-info">
-        <h4 className="room-name">{room.name}</h4>
-        <div className="room-meta">
-          <span className="game-type-badge">{gameTypeIcon} {gameTypeName}</span>
-          <span className="player-count">
-            {room.players.length}/{room.maxPlayers} 人
-          </span>
-          <span className={`room-status ${room.status}`}>
-            {isPlaying ? '游戏中' : '等待中'}
-          </span>
+      <div className="room-card-header">
+        <div className="room-name-wrapper">
+          <div className="room-icon">{gameTypeIcon}</div>
+          <div>
+            <h4 className="room-name">{room.name}</h4>
+            <span className="game-type-badge">{gameTypeName}</span>
+          </div>
         </div>
-        <div className="room-players">
-          {room.players.map((player) => (
-            <span key={player.id} className="player-avatar" title={player.name}>
-              {player.avatar}
-            </span>
-          ))}
-        </div>
+        <span className={`room-status status-${room.status}`}>
+          {isPlaying ? '进行中' : '等待中'}
+        </span>
       </div>
-      <button 
-        className="btn btn-primary join-btn"
-        onClick={onJoin}
-        disabled={isFull || isPlaying}
-      >
-        {isFull ? '已满' : isPlaying ? '游戏中' : '加入'}
-      </button>
+      
+      <div style={{ flex: 1 }}></div>
+
+      <div className="room-card-footer">
+        <div className="players-count">
+           <span style={{ fontSize: '18px' }}>
+             {room.players.map(p => p.avatar).join('')}
+           </span>
+           <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+             {room.players.length}/{room.maxPlayers}
+           </span>
+        </div>
+        <button 
+          className="btn btn-primary join-btn"
+          onClick={onJoin}
+          disabled={isFull || isPlaying}
+        >
+          {isFull ? '满员' : isPlaying ? '进行中' : '加入'}
+        </button>
+      </div>
     </div>
   )
 }
