@@ -18,11 +18,12 @@ services:
       dockerfile: Dockerfile
     container_name: dishu-server
     ports:
-      - "3001:3001"
+      - "${SERVER_PORT:-3001}:${SERVER_PORT:-3001}"
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${SERVER_PORT:-3001}
+      - HOST=${SERVER_HOST:-0.0.0.0}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
     depends_on:
       - redis
     volumes:
@@ -35,6 +36,13 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        # 构建时传入的环境变量
+        - VITE_APP_NAME=${VITE_APP_NAME:-嘀咕游戏}
+        - VITE_APP_SUBTITLE=${VITE_APP_SUBTITLE:-在线多人游戏平台}
+        - VITE_APP_LOGO=${VITE_APP_LOGO:-🎮}
+        - VITE_THEME_PRIMARY=${VITE_THEME_PRIMARY:-#667eea}
+        - VITE_THEME_SECONDARY=${VITE_THEME_SECONDARY:-#764ba2}
     container_name: dishu-web
     ports:
       - "80:80"

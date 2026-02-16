@@ -34,7 +34,7 @@
 }
 
 .game-type {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   color: white;
   padding: 6px 14px;
   border-radius: 20px;
@@ -73,7 +73,7 @@
 }
 
 .player-card.active {
-  border: 3px solid #667eea;
+  border: 3px solid var(--theme-primary);
   box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
 }
 
@@ -117,7 +117,7 @@
 .turn-indicator {
   position: absolute;
   top: -10px;
-  background: #667eea;
+  background: var(--theme-primary);
   color: white;
   font-size: 12px;
   padding: 4px 12px;

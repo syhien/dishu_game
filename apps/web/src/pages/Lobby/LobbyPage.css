@@ -24,7 +24,7 @@
 .logo-text {
   font-size: 24px;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -210,7 +210,7 @@
 }
 
 .game-type.selected {
-  border-color: #667eea;
+  border-color: var(--theme-primary);
   background: rgba(102, 126, 234, 0.1);
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../../store/gameStore'
 import { ClientEvents, Room } from '../../types'
+import { config } from '../../config'
 import './LobbyPage.css'
 
 export default function LobbyPage() {
@@ -58,8 +59,8 @@ export default function LobbyPage() {
     <div className="lobby-page">
       <header className="lobby-header">
         <div className="logo">
-          <span className="logo-icon">🎮</span>
-          <span className="logo-text">嘀咕游戏</span>
+          <span className="logo-icon">{config.appLogo}</span>
+          <span className="logo-text">{config.appName}</span>
         </div>
         <div className="user-info">
           <span className="user-avatar">{currentUser.avatar}</span>
@@ -75,7 +76,7 @@ export default function LobbyPage() {
 
       <main className="lobby-main">
         <div className="lobby-toolbar">
-          <h2>游戏大厅</h2>
+          <h2>{config.appName}</h2>
           <button 
             className="btn btn-primary"
             onClick={() => setShowCreateModal(true)}

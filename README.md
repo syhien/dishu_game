@@ -37,6 +37,23 @@ npm install
 npm run dev
 ```
 
+### 自定义配置（可选）
+
+```bash
+# 复制环境变量模板
+cp .env.example .env
+
+# 编辑 .env 文件修改配置
+vim .env
+```
+
+常用配置项：
+- `VITE_APP_NAME` - 游戏平台名称（默认：嘀咕游戏）
+- `VITE_APP_SUBTITLE` - 副标题（默认：在线多人游戏平台）
+- `VITE_THEME_PRIMARY` - 主题主色（默认：#667eea）
+- `VITE_THEME_SECONDARY` - 主题辅色（默认：#764ba2）
+- `SERVER_PORT` - 后端端口（默认：3001）
+
 ### Docker 部署
 
 ```bash

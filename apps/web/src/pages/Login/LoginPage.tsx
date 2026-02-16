@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../../store/gameStore'
 import { AVATARS } from '../../types'
+import { config } from '../../config'
 import './LoginPage.css'
 
 export default function LoginPage() {
@@ -27,8 +28,8 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1 className="login-title">🎮 嘀咕游戏</h1>
-        <p className="login-subtitle">在线多人游戏平台</p>
+        <h1 className="login-title">{config.appLogo} {config.appName}</h1>
+        <p className="login-subtitle">{config.appSubtitle}</p>
 
         {!isConnected ? (
           <div className="connecting">
