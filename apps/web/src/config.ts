@@ -2,7 +2,7 @@
 
 export const config = {
   // 应用信息
-  appName: import.meta.env.VITE_APP_NAME || '嘀咕游戏',
+  appName: import.meta.env.VITE_APP_NAME || '高俗游戏',
   appSubtitle: import.meta.env.VITE_APP_SUBTITLE || '在线多人游戏平台',
   appLogo: import.meta.env.VITE_APP_LOGO || '🎮',
   

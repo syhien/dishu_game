@@ -44,7 +44,7 @@ services:
     # build:
     #   context: ./apps/web
     #   args:
-    #     - VITE_APP_NAME=${VITE_APP_NAME:-嘀咕游戏}
+    #     - VITE_APP_NAME=${VITE_APP_NAME:-高俗游戏}
     #     - VITE_APP_SUBTITLE=${VITE_APP_SUBTITLE:-在线多人游戏平台}
     #     - VITE_APP_LOGO=${VITE_APP_LOGO:-🎮}
     #     - VITE_THEME_PRIMARY=${VITE_THEME_PRIMARY:-#667eea}

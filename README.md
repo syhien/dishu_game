@@ -1,4 +1,4 @@
-# 🎮 嘀咕游戏 (Dishu Game)
+# 🎮 高俗游戏 (Dishu Game)
 
 [![Docker](https://github.com/syhien/dishu_game/actions/workflows/docker.yml/badge.svg)](https://github.com/syhien/dishu_game/actions/workflows/docker.yml)
 [![Release](https://github.com/syhien/dishu_game/actions/workflows/release.yml/badge.svg)](https://github.com/syhien/dishu_game/actions/workflows/release.yml)
@@ -66,7 +66,7 @@ docker compose exec watchtower --run-once
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `VITE_APP_NAME` | 嘀咕游戏 | 游戏平台名称 |
+| `VITE_APP_NAME` | 高俗游戏 | 游戏平台名称 |
 | `VITE_THEME_PRIMARY` | #667eea | 主题主色 |
 | `VITE_THEME_SECONDARY` | #764ba2 | 主题辅色 |
 
