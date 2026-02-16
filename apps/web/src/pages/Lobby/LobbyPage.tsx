@@ -5,9 +5,9 @@ import { ClientEvents, GameType, Room } from '../../types'
 import { config } from '../../config'
 import './LobbyPage.css'
 
-const GAME_OPTIONS: { type: GameType; icon: string; name: string }[] = [
-  { type: GameType.GOMOKU, icon: '⚫⚪', name: '五子棋' },
-  { type: GameType.CBMFS, icon: '🪄', name: '出包魔法师' }
+const GAME_OPTIONS: { type: GameType; icon: string; name: string; playerRange: string }[] = [
+  { type: GameType.GOMOKU, icon: '⚫⚪', name: '五子棋', playerRange: '2人对战' },
+  { type: GameType.CBMFS, icon: '🪄', name: '出包魔法师', playerRange: '2-5人' }
 ]
 
 export default function LobbyPage() {
@@ -45,6 +45,19 @@ export default function LobbyPage() {
       navigate(`/room/${currentRoom.id}`)
     }
   }, [currentRoom, navigate])
+
+  useEffect(() => {
+    if (!showCreateModal) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowCreateModal(false)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [showCreateModal])
 
   const handleCreateRoom = () => {
     if (roomName.trim()) {
@@ -121,6 +134,11 @@ export default function LobbyPage() {
                 placeholder="输入房间名称"
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && roomName.trim()) {
+                    handleCreateRoom()
+                  }
+                }}
                 maxLength={20}
                 autoFocus
               />
@@ -132,11 +150,15 @@ export default function LobbyPage() {
                   <button
                     key={option.type}
                     type="button"
-                    className={`game-type ${selectedGameType === option.type ? 'selected' : ''}`}
+                    className={`game-option ${selectedGameType === option.type ? 'selected' : ''}`}
                     onClick={() => setSelectedGameType(option.type)}
+                    aria-pressed={selectedGameType === option.type}
                   >
                     <span className="game-icon">{option.icon}</span>
-                    <span>{option.name}</span>
+                    <span className="game-option-text">
+                      <strong>{option.name}</strong>
+                      <small>{option.playerRange}</small>
+                    </span>
                   </button>
                 ))}
               </div>
@@ -167,13 +189,14 @@ function RoomCard({ room, onJoin }: { room: Room; onJoin: () => void }) {
   const isFull = room.players.length >= room.maxPlayers
   const isPlaying = room.status === 'playing'
   const gameTypeName = room.gameType === GameType.CBMFS ? '出包魔法师' : '五子棋'
+  const gameTypeIcon = room.gameType === GameType.CBMFS ? '🪄' : '⚫⚪'
 
   return (
     <div className={`room-card ${isPlaying ? 'playing' : ''}`}>
       <div className="room-info">
         <h4 className="room-name">{room.name}</h4>
         <div className="room-meta">
-          <span className="game-type-badge">{gameTypeName}</span>
+          <span className="game-type-badge">{gameTypeIcon} {gameTypeName}</span>
           <span className="player-count">
             {room.players.length}/{room.maxPlayers} 人
           </span>

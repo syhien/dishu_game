@@ -71,6 +71,7 @@ export enum CbmfsSpellType {
 export interface CbmfsState extends GameState {
   type: GameType.CBMFS;
   players: string[];
+  playerNames: Record<string, string>;
   turnOrder: string[];
   round: number;
   health: Record<string, number>;
@@ -146,4 +147,5 @@ export interface MakeMoveRequest {
 export interface LoginRequest {
   name: string;
   avatar: string;
+  sessionId?: string;
 }

@@ -90,7 +90,7 @@ export default function RoomPage() {
         </button>
         <h2 className="room-title">{currentRoom.name}</h2>
         <div className="room-info">
-          <span className="game-type">{gameTypeName}</span>
+          <span className="room-game-type">{gameTypeName}</span>
         </div>
       </header>
 

@@ -2,6 +2,39 @@ import { create } from 'zustand'
 import { Socket } from 'socket.io-client'
 import { User, Room, GameState, ServerEvents, ClientEvents, GameType, MakeMoveRequest } from '../types'
 
+const PROFILE_STORAGE_KEY = 'dishu:playerProfile'
+
+interface PlayerProfile {
+  name: string
+  avatar: string
+  sessionId: string
+}
+
+function generateSessionId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function getStoredProfile(): PlayerProfile | null {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as PlayerProfile
+    if (!parsed?.name || !parsed?.avatar || !parsed?.sessionId) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function saveProfile(profile: PlayerProfile): void {
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
+}
+
 interface GameStateStore {
   // 连接
   socket: Socket | null
@@ -48,7 +81,36 @@ export const useGameStore = create<GameStateStore>((set, get) => ({
 
   // Actions
   setSocket: (socket) => {
-    set({ socket, isConnected: true })
+    if (get().socket === socket) {
+      return
+    }
+
+    set({ socket })
+
+    socket.on('connect', () => {
+      set({ isConnected: true })
+      const profile = getStoredProfile()
+      if (!profile) {
+        return
+      }
+
+      const shouldRestoreSession =
+        !!get().currentUser ||
+        !!get().currentRoom ||
+        window.location.pathname.startsWith('/room/')
+
+      if (shouldRestoreSession) {
+        socket.emit(ClientEvents.USER_LOGIN, {
+          name: profile.name,
+          avatar: profile.avatar,
+          sessionId: profile.sessionId
+        })
+      }
+    })
+
+    socket.on('disconnect', () => {
+      set({ isConnected: false })
+    })
     
     // 设置事件监听
     socket.on(ServerEvents.ROOM_LIST, (rooms) => {
@@ -68,8 +130,11 @@ export const useGameStore = create<GameStateStore>((set, get) => ({
     socket.on(ServerEvents.ROOM_UPDATED, (room) => {
       set((state) => {
         const isPlayerInRoom = room.players.find((p: User) => p.id === state.currentUser?.id)
+        const hasRoomInList = state.rooms.some(r => r.id === room.id)
         return {
-          rooms: state.rooms.map(r => r.id === room.id ? room : r),
+          rooms: hasRoomInList
+            ? state.rooms.map(r => r.id === room.id ? room : r)
+            : [room, ...state.rooms],
           // 如果当前用户在房间里，更新 currentRoom
           currentRoom: isPlayerInRoom ? room : (state.currentRoom?.id === room.id ? room : state.currentRoom)
         }
@@ -84,8 +149,11 @@ export const useGameStore = create<GameStateStore>((set, get) => ({
     })
     
     socket.on(ServerEvents.USER_JOINED, (user) => {
-      if (!get().currentUser) {
-        set({ currentUser: user })
+      set({ currentUser: user })
+
+      const profile = getStoredProfile()
+      if (profile) {
+        saveProfile({ ...profile, name: user.name, avatar: user.avatar })
       }
     })
     
@@ -115,8 +183,12 @@ export const useGameStore = create<GameStateStore>((set, get) => ({
 
   login: (name, avatar) => {
     const { socket } = get()
+    const existingProfile = getStoredProfile()
+    const sessionId = existingProfile?.sessionId || generateSessionId()
+    saveProfile({ name, avatar, sessionId })
+
     if (socket) {
-      socket.emit(ClientEvents.USER_LOGIN, { name, avatar })
+      socket.emit(ClientEvents.USER_LOGIN, { name, avatar, sessionId })
     }
   },
 

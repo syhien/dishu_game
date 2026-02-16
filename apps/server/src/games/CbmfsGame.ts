@@ -33,12 +33,16 @@ export class CbmfsGame {
     }
 
     const playerIds = players.map(player => player.id);
+    const playerNames: Record<string, string> = {};
+    players.forEach(player => {
+      playerNames[player.id] = player.name;
+    });
     const scores: Record<string, number> = {};
     playerIds.forEach(playerId => {
       scores[playerId] = 0;
     });
 
-    return this.createRoundState(playerIds, scores, 1, playerIds[0]);
+    return this.createRoundState(playerIds, playerNames, scores, 1, playerIds[0]);
   }
 
   static makeMove(state: CbmfsState, playerId: string, move: MakeMoveRequest): MakeMoveResult {
@@ -77,7 +81,7 @@ export class CbmfsGame {
     if (cardIndex < 0) {
       const damage = spellType === CbmfsSpellType.ANCIENT_DRAGON ? this.rollD3() : 1;
       this.applyDamage(newState, playerId, damage);
-      this.appendLog(newState, `❌ ${this.shortPlayer(playerId)}施法失败（${this.getSpellName(spellType)}），扣除${damage}❤️`);
+      this.appendLog(newState, `❌ ${this.getPlayerLabel(newState, playerId)}施法失败（${this.getSpellName(spellType)}），扣除${damage}❤️`);
       newState.lastCastSpell = undefined;
 
       if (newState.health[playerId] <= 0) {
@@ -90,7 +94,7 @@ export class CbmfsGame {
     hand.splice(cardIndex, 1);
     newState.discardPile.push(spellType);
     this.applySpellEffect(newState, playerId, spellType);
-    this.appendLog(newState, `✨ ${this.shortPlayer(playerId)}施放了${this.getSpellName(spellType)}`);
+    this.appendLog(newState, `✨ ${this.getPlayerLabel(newState, playerId)}施放了${this.getSpellName(spellType)}`);
     newState.lastCastSpell = spellType;
 
     if (newState.hands[playerId].length === 0) {
@@ -113,7 +117,7 @@ export class CbmfsGame {
     newState.currentPlayer = nextPlayer;
     newState.lastCastSpell = undefined;
 
-    this.appendLog(newState, `➡️ 轮到${this.shortPlayer(nextPlayer)}行动`);
+    this.appendLog(newState, `➡️ 轮到${this.getPlayerLabel(newState, nextPlayer)}行动`);
     return newState;
   }
 
@@ -128,7 +132,7 @@ export class CbmfsGame {
           nextState.health[playerId] = 0;
         }
       });
-      summary = `${this.shortPlayer(actorId)}打空手牌，本轮+3分。`;
+      summary = `${this.getPlayerLabel(nextState, actorId)}打空手牌，本轮+3分。`;
     }
 
     if (reason === 'defeated_other') {
@@ -138,7 +142,7 @@ export class CbmfsGame {
           nextState.scores[playerId] += 1;
         }
       });
-      summary = `${this.shortPlayer(actorId)}击败其他玩家，本轮+3分，其他存活玩家+1分。`;
+      summary = `${this.getPlayerLabel(nextState, actorId)}击败其他玩家，本轮+3分，其他存活玩家+1分。`;
     }
 
     if (reason === 'self_defeated') {
@@ -147,7 +151,7 @@ export class CbmfsGame {
           nextState.scores[playerId] += 1;
         }
       });
-      summary = `${this.shortPlayer(actorId)}施法失败阵亡，其他玩家+1分。`;
+      summary = `${this.getPlayerLabel(nextState, actorId)}施法失败阵亡，其他玩家+1分。`;
     }
 
     nextState.players.forEach(playerId => {
@@ -161,16 +165,17 @@ export class CbmfsGame {
     if (winner) {
       nextState.winner = winner;
       nextState.lastRoundSummary = summary;
-      this.appendLog(nextState, `🏆 ${this.shortPlayer(winner)}率先达到${TARGET_SCORE}分，获得胜利！`);
+      this.appendLog(nextState, `🏆 ${this.getPlayerLabel(nextState, winner)}率先达到${TARGET_SCORE}分，获得胜利！`);
       return nextState;
     }
 
     const nextStarter = this.getNextPlayerId(nextState.turnOrder, actorId);
-    return this.createRoundState(nextState.players, nextState.scores, nextState.round + 1, nextStarter, summary);
+    return this.createRoundState(nextState.players, nextState.playerNames, nextState.scores, nextState.round + 1, nextStarter, summary);
   }
 
   private static createRoundState(
     players: string[],
+    playerNames: Record<string, string>,
     scores: Record<string, number>,
     round: number,
     startPlayerId: string,
@@ -199,10 +204,15 @@ export class CbmfsGame {
       });
     }
 
+    players.forEach(playerId => {
+      hands[playerId] = this.sortHand(hands[playerId]);
+    });
+
     return {
       type: GameType.CBMFS,
       currentPlayer: startPlayerId,
       players: [...players],
+      playerNames: { ...playerNames },
       turnOrder: [...players],
       round,
       health,
@@ -280,12 +290,18 @@ export class CbmfsGame {
   }
 
   private static drawToHand(state: CbmfsState, playerId: string): void {
+    let drewCard = false;
     while (state.hands[playerId].length < HAND_SIZE && state.drawPile.length > 0) {
       const card = state.drawPile.shift();
       if (!card) {
         break;
       }
       state.hands[playerId].push(card);
+      drewCard = true;
+    }
+
+    if (drewCard) {
+      state.hands[playerId] = this.sortHand(state.hands[playerId]);
     }
   }
 
@@ -341,6 +357,16 @@ export class CbmfsGame {
     return result;
   }
 
+  private static sortHand(cards: CbmfsSpellType[]): CbmfsSpellType[] {
+    return [...cards].sort((left, right) => {
+      const rarityCompare = SPELL_COUNTS[left] - SPELL_COUNTS[right];
+      if (rarityCompare !== 0) {
+        return rarityCompare;
+      }
+      return left.localeCompare(right);
+    });
+  }
+
   private static appendLog(state: CbmfsState, message: string): void {
     state.actionLog = [message, ...state.actionLog].slice(0, MAX_LOG_SIZE);
   }
@@ -361,6 +387,7 @@ export class CbmfsGame {
     return {
       ...state,
       players: [...state.players],
+      playerNames: { ...state.playerNames },
       turnOrder: [...state.turnOrder],
       hands,
       health,
@@ -394,5 +421,9 @@ export class CbmfsGame {
 
   private static shortPlayer(playerId: string): string {
     return `玩家${playerId.slice(0, 4)}`;
+  }
+
+  private static getPlayerLabel(state: CbmfsState, playerId: string): string {
+    return state.playerNames[playerId] || this.shortPlayer(playerId);
   }
 }

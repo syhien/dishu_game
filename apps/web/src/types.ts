@@ -67,6 +67,7 @@ export enum CbmfsSpellType {
 export interface CbmfsState extends GameState {
   type: GameType.CBMFS;
   players: string[];
+  playerNames: Record<string, string>;
   turnOrder: string[];
   round: number;
   health: Record<string, number>;
@@ -87,6 +88,12 @@ export interface MakeMoveRequest {
   y?: number;
   action?: 'gomoku_place' | 'cbmfs_cast' | 'cbmfs_end_turn';
   spellType?: CbmfsSpellType;
+}
+
+export interface LoginRequest {
+  name: string;
+  avatar: string;
+  sessionId?: string;
 }
 
 export enum ServerEvents {

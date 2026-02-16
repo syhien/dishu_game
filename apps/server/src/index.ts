@@ -24,6 +24,8 @@ app.use(express.json());
 const userManager = new UserManager();
 const roomManager = new RoomManager();
 const gameManager = new GameManager();
+const DISCONNECT_GRACE_MS = 120000;
+const pendingDisconnects = new Map<string, NodeJS.Timeout>();
 
 // Socket.io 连接处理
 io.on('connection', (socket) => {
@@ -31,9 +33,26 @@ io.on('connection', (socket) => {
 
   // 用户登录
   socket.on(ClientEvents.USER_LOGIN, (data: LoginRequest) => {
-    const user = userManager.createUser(socket.id, data.name, data.avatar);
+    const user = userManager.createOrReconnectUser(socket.id, data.name, data.avatar, data.sessionId);
+    const pending = pendingDisconnects.get(user.id);
+    if (pending) {
+      clearTimeout(pending);
+      pendingDisconnects.delete(user.id);
+    }
+
     console.log(`用户登录: ${user.name} (${user.id})`);
     socket.emit(ServerEvents.USER_JOINED, user);
+
+    if (user.roomId) {
+      const room = roomManager.getRoom(user.roomId);
+      if (room) {
+        socket.join(room.id);
+        socket.emit(ServerEvents.ROOM_UPDATED, room);
+        io.to(room.id).emit(ServerEvents.ROOM_UPDATED, room);
+      } else {
+        user.roomId = undefined;
+      }
+    }
   });
 
   // 获取房间列表
@@ -170,16 +189,37 @@ io.on('connection', (socket) => {
 
   // 断开连接
   socket.on('disconnect', () => {
-    const user = userManager.getUser(socket.id);
-    if (user && user.roomId) {
-      const room = roomManager.leaveRoom(user.roomId, user.id);
-      if (room) {
-        io.to(room.id).emit(ServerEvents.ROOM_UPDATED, room);
-      } else {
-        io.emit(ServerEvents.ROOM_DELETED, { roomId: user.roomId });
+    const user = userManager.markOffline(socket.id);
+    if (user) {
+      const oldTimer = pendingDisconnects.get(user.id);
+      if (oldTimer) {
+        clearTimeout(oldTimer);
       }
+
+      const timer = setTimeout(() => {
+        const latestUser = userManager.getUserById(user.id);
+        if (!latestUser || latestUser.isOnline) {
+          pendingDisconnects.delete(user.id);
+          return;
+        }
+
+        if (latestUser.roomId) {
+          const leftRoomId = latestUser.roomId;
+          const room = roomManager.leaveRoom(latestUser.roomId, latestUser.id);
+          if (room) {
+            io.to(room.id).emit(ServerEvents.ROOM_UPDATED, room);
+          } else {
+            io.emit(ServerEvents.ROOM_DELETED, { roomId: leftRoomId });
+          }
+        }
+
+        userManager.removeUser(user.id);
+        pendingDisconnects.delete(user.id);
+      }, DISCONNECT_GRACE_MS);
+
+      pendingDisconnects.set(user.id, timer);
     }
-    userManager.removeUser(socket.id);
+
     console.log(`用户断开连接: ${socket.id}`);
   });
 });

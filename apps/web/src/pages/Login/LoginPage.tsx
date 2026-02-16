@@ -7,16 +7,16 @@ import './LoginPage.css'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { currentUser, isConnected, login } = useGameStore()
+  const { currentUser, currentRoom, isConnected, login } = useGameStore()
   const [name, setName] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0])
 
   // 登录成功后跳转到大厅
   useEffect(() => {
     if (currentUser) {
-      navigate('/lobby')
+      navigate(currentRoom ? `/room/${currentRoom.id}` : '/lobby')
     }
-  }, [currentUser, navigate])
+  }, [currentUser, currentRoom, navigate])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

@@ -10,30 +10,33 @@ function App() {
   const { socket, setSocket } = useGameStore()
 
   useEffect(() => {
-    // 连接 Socket.io 服务器
-    const connectSocket = async () => {
-      const { io } = await import('socket.io-client')
-      // 直接连接后端容器（Docker 内部网络）
-      const newSocket = io({
-        path: '/socket.io',
-      })
-      
-      newSocket.on('connect', () => {
-        console.log('Connected to server')
-        setSocket(newSocket)
-      })
-
-      newSocket.on('disconnect', () => {
-        console.log('Disconnected from server')
-      })
-
-      return () => {
-        newSocket.close()
-      }
+    if (socket) {
+      return
     }
 
-    if (!socket) {
-      connectSocket()
+    let disposed = false
+    let activeSocket: { close: () => void } | null = null
+
+    const connectSocket = async () => {
+      const { io } = await import('socket.io-client')
+      const newSocket = io({
+        path: '/socket.io'
+      })
+
+      if (disposed) {
+        newSocket.close()
+        return
+      }
+
+      activeSocket = newSocket
+      setSocket(newSocket)
+    }
+
+    connectSocket()
+
+    return () => {
+      disposed = true
+      activeSocket?.close()
     }
   }, [socket, setSocket])
 
